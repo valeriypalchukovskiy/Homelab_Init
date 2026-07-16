@@ -1,77 +1,138 @@
-# Homelab Init — Счётчик посещений на Python + Redis
+### Исправленный README.md (копируй целиком)
 
+markdown
+
+# Homelab Init — Счётчик посещений на Python + Redis
 Проект для портфолио: веб-приложение, которое считает количество посещений страницы.  
 Данные хранятся в Redis, приложение упаковано в Docker, среда разворачивается через Vagrant.
+**Главная фишка:** после `vagrant up` всё поднимается автоматически — приложение запускается и ждёт подключения.
+---
+## 🧰 Технологии
+- Python 3 + http.server
+- Redis (in-memory БД)
+- Docker (опционально, для контейнеризации)
+- Vagrant + VirtualBox (воспроизводимая среда)
+- Makefile (для удобных команд)
+---
+## 📁 Структура проекта
 
-## Технологии
+.  
+├── Makefile # команды для управления  
+├── README.md # этот файл  
+├── Vagrantfile # конфигурация VM  
+├── infra/  
+│ └── provision.sh # автоматическая настройка и запуск  
+└── src/  
+├── app.py # основное приложение  
+├── Dockerfile # для контейнеризации  
+└── requirements.txt # зависимости Python
 
-- Python 3
-- Redis
-- Docker
-- Vagrant + VirtualBox
-- Makefile
+text
 
-## Структура
-
-```
-.
-├── Makefile
-├── README.md
-├── Vagrantfile
-├── infra/
-│   └── provision.sh
-└── src/
-    ├── app.py
-    ├── Dockerfile
-    └── requirements.txt
-```
-
-## Запуск
-
-### 1. Клонировать репозиторий
-
+---
+## ⚡ Быстрый старт (автоматический запуск)
 ```bash
 git clone https://github.com/valeriypalchukovskiy/Homelab_Init.git
 cd Homelab_Init
+vagrant up
 ```
+После выполнения:
 
-### 2. Запустить VM
+- VM будет создана и настроена.
+    
+- Установятся: Python, Redis, Docker, необходимые пакеты.
+    
+- Код скопируется в `/home/vagrant/web_project`.
+    
+- Приложение **автоматически запустится** и будет слушать порт `8080` внутри VM.
+    
 
-```bash
-make up
-# или vagrant up
-```
+---
 
-### 3. Войти в VM и запустить приложение
+## 🌐 Доступ к приложению
 
-```bash
-make ssh
-# затем внутри VM:
+### 1. SSH-туннель (рекомендуемый способ)
+
+В **отдельном** окне терминала (на хосте) выполните:
+
+bash
+
+vagrant ssh -- -L 8081:localhost:8080
+
+Оставьте это окно открытым — туннель активен, пока оно работает.
+
+### 2. Откройте браузер
+
+Перейдите по адресу:  
+👉 [http://localhost:8081](http://localhost:8081/)
+
+При каждом обновлении страницы счётчик будет увеличиваться.
+
+---
+
+### Альтернативный способ — проброс порта через Vagrantfile
+
+Если вы хотите обойтись без ручного туннеля, раскомментируйте в `Vagrantfile` строку:
+
+ruby
+
+config.vm.network "forwarded_port", guest: 8080, host: 8081
+
+Затем выполните `vagrant reload`. После этого приложение будет доступно сразу по адресу `http://localhost:8081`.
+
+> **Примечание:** проброс через Vagrantfile иногда конфликтует с брандмауэром или занятыми портами. SSH-туннель — более надёжный способ.
+
+---
+
+## 🛠️ Ручной запуск (для отладки)
+
+Если нужно запустить приложение вручную (или проверить логи):
+
+bash
+
+vagrant ssh
 cd ~/web_project
-sudo systemctl start redis
-python3 app.py &
-```
+sudo systemctl start redis-server   # если Redis не запущен
+python3 app.py
 
-### 4. Открыть туннель (в отдельном окне)
+Проверьте работу внутри VM:
 
-```bash
-make tunnel
-# или vagrant ssh -- -L 8081:localhost:8080
-```
+bash
 
-### 5. Открыть в браузере
+curl http://localhost:8080
 
-[http://localhost:8081](http://localhost:8081)
+---
 
-## Docker (внутри VM)
+## 🐳 Запуск через Docker (опционально)
 
-```bash
+В проекте есть `Dockerfile` и `requirements.txt`, но в основной ветке приложение запускается напрямую через Python для простоты и стабильности.
+
+**Полноценный Docker-стек** с `docker-compose` разрабатывается в отдельной ветке [`feature/docker-compose`](https://github.com/valeriypalchukovskiy/Homelab_Init/tree/feature/docker-compose).
+
+Если хотите собрать и запустить контейнер внутри текущей VM:
+
+bash
+
+vagrant ssh
 cd ~/web_project
 docker build -t counter-app .
-docker run -d --network host --name counter counter-app
-curl http://localhost:8080   # проверка
-```
+docker run -d -p 8080:8080 --name counter counter-app
+curl http://localhost:8080   # проверка внутри VM
 
-## Автор
+---
 
-Валерий Пальчуковский
+## ❓ Устранение неполадок
+
+| Проблема                                              | Решение                                                                                                                                                                                 |
+| ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `curl http://localhost:8080` внутри VM не даёт ответа | Проверьте, запущено ли приложение: `ps aux \| grep app.py`. Если нет — смотрите логи: `cat /home/vagrant/app.log`.                                                                      |
+| Страница не открывается в браузере                    | Убедитесь, что туннель активен (окно с `vagrant ssh -- -L ...` открыто). Проверьте, не занят ли порт 8081: `netstat -ano \| findstr :8081` (Windows) или `lsof -i :8081` (macOS/Linux). |
+| Redis не отвечает (`redis-cli ping` не даёт PONG)     | Запустите: `sudo systemctl start redis-server`.                                                                                                                                         |
+| Ошибка SSH после `vagrant up`                         | Перезагрузите VM: `vagrant reload`. Если проблема с UFW, внутри VM выполните `sudo ufw disable`.                                                                                        |
+| `make` не работает в Windows                          | Установите Make (например, через Chocolatey) или используйте команды напрямую: `vagrant up`, `vagrant ssh` и т.д.                                                                       |
+
+---
+
+## 📝 Автор
+
+**Валерий Пальчуковский**
