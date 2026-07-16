@@ -27,7 +27,7 @@ text
 ## Запуск
 
 ### 1. Клонировать репозиторий
-```bash
+bash
 git clone https://github.com/valeriypalchukovskiy/Homelab_Init.git
 cd Homelab_Init
 2. Запустить VM
