@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:alpine
+    container_name: counter-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"   # если нужно внешнее подключение к Redis (опционально)
+    networks:
+      - app-network
+
+  app:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    container_name: counter-app
+    restart: unless-stopped
+    ports:
+      - "8081:8080"   # хост:контейнер
+    environment:
+      - REDIS_HOST=redis   # имя хоста для подключения к Redis
+      - REDIS_PORT=6379
+    depends_on:
+      - redis
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
