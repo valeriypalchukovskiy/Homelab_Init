@@ -26,4 +26,9 @@ sudo apt install -y redis-server
 sudo systemctl enable redis
 sudo systemctl start redis
 
+# Установка Docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo usermod -aG docker vagrant
+
 echo "=== Всё готово! ==="

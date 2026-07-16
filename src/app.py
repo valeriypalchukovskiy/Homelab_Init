@@ -1,5 +1,4 @@
 import http.server
-import socketserver
 import redis
 import os
 
@@ -32,6 +31,6 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
 
 if __name__ == '__main__':
     PORT = 8080
-    with socketserver.TCPServer(("0.0.0.0", PORT), MyHandler) as httpd:
+    with http.server.HTTPServer(("0.0.0.0", PORT), MyHandler) as httpd:
         print(f"Serving on port {PORT}")
         httpd.serve_forever()
