@@ -21,4 +21,9 @@ curl --version | head -n1
 wget --version | head -n1
 vim --version | head -n1
 
+# Установка Redis
+sudo apt install -y redis-server
+sudo systemctl enable redis
+sudo systemctl start redis
+
 echo "=== Всё готово! ==="
