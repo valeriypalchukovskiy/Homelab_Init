@@ -1,4 +1,7 @@
 # Homelab Init — Счётчик посещений на Python + Redis
+![GitHub last commit](https://img.shields.io/github/last-commit/valeriypalchukovskiy/Homelab_Init)
+![GitHub](https://img.shields.io/github/license/valeriypalchukovskiy/Homelab_Init)
+![GitHub stars](https://img.shields.io/github/stars/valeriypalchukovskiy/Homelab_Init?style=social)
 Проект для портфолио: веб-приложение, которое считает количество посещений страницы.  
 Данные хранятся в Redis, приложение упаковано в Docker, среда разворачивается через Vagrant.
 **Главная фишка:** после `vagrant up` всё поднимается автоматически — приложение запускается и ждёт подключения.
